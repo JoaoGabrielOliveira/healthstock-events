@@ -1,18 +1,20 @@
 import express from 'express';
+import cors from 'cors';
 import * as dotenv from 'dotenv';
 import axios from 'axios';
+import EventModel from './EventModel.js';
 
 dotenv.config()
 const app = express();
-
-app.use(express.json())
-
 const listOfServices = [
-    "localhost:8080","localhost:8040",
+    "http://localhost:8080",
 ];
 
-app.get("/", (req, res) => {
-    let services = checkServiceWorking();
+app.use(express.json());
+app.use(cors( { origin: listOfServices}))
+
+app.get("/", async (req, res) => {
+    let services = await checkServiceWorking();
     let notWorkingServices = getDifference(services, listOfServices);
 
     res.json({
@@ -21,27 +23,36 @@ app.get("/", (req, res) => {
 
 });
 
-app.listen(process.env.PORT, process.env.HOST, () => {
-    console.log("Iniciando HealthStock Events ", `http://${process.env.HOST}:${process.env.PORT}`);
-    let services = checkServiceWorking();
+app.post('/', (req, res) => {
+    let event = new EventModel(req.body);
 
-    services.forEach(host => {
-        console.info(`\t- ${host} está funcionando!`);
-    });
+    console.log(event);
+    res.send(event);
+})
+
+app.listen(process.env.PORT, process.env.HOST, async () => {
+    console.log("Iniciando HealthStock Events ", `http://${process.env.HOST}:${process.env.PORT}`);
+    
+    let services = await checkServiceWorking();
+    services.forEach( host => console.info(`\t- ${host} está funcionando!`));
 
     getDifference(services, listOfServices).forEach(host => {
         console.error(`\t* ${host} não está funcionando!`);
     });
+
+
 });
 
-function checkServiceWorking(){
+async function checkServiceWorking(){
     let listOfServicesWorking = [];
-    listOfServices.forEach((host) => {
-        axios.get(host)
-            .then( result => {
+
+    for(const host of listOfServices) {
+        await axios.get(host)
+            .then((r) => {
                 listOfServicesWorking.push(host);
-            }).catch( () => {});
-    });
+            })
+            .catch(() => {});
+    };
 
     return listOfServicesWorking;
 }
