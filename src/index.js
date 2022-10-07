@@ -3,6 +3,7 @@ import cors from 'cors';
 import * as dotenv from 'dotenv';
 import axios from 'axios';
 import EventModel from './EventModel.js';
+import logger from './logger.js';
 
 dotenv.config()
 const app = express();
@@ -24,10 +25,14 @@ app.get("/", async (req, res) => {
 });
 
 app.post('/', (req, res) => {
-    let event = new EventModel(req.body);
-
-    console.log(event);
-    res.send(event);
+    try {
+        let event = new EventModel(req.body);
+        logger[event.level](event.message, event);
+        res.send(event);
+    } catch (error) {
+        logger.error(error);
+        res.send(error.message);
+    }
 })
 
 app.listen(process.env.PORT, process.env.HOST, async () => {
@@ -39,8 +44,6 @@ app.listen(process.env.PORT, process.env.HOST, async () => {
     getDifference(services, listOfServices).forEach(host => {
         console.error(`\t* ${host} não está funcionando!`);
     });
-
-
 });
 
 async function checkServiceWorking(){
@@ -58,7 +61,6 @@ async function checkServiceWorking(){
 }
 
 function getDifference(array1, array2, compare = (a,b) => a === b){
-
     const onlyInLeft = (left, right, compareFunction) => 
         left.filter(leftValue =>
             !right.some(rightValue => 

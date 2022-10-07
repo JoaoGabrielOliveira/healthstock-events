@@ -3,6 +3,11 @@ export default class EventModel {
     origin;
     host;
     message;
+    /**
+     * Diz qual o level do evento disparado!
+     * @type {"info" | "warn" | "error" | "debug"}
+     */
+    level;
     data;
 
     constructor(response){
@@ -12,5 +17,10 @@ export default class EventModel {
         this.origin = response.origin;
         this.message = response.message;
         this.data = response.data;
+
+        if(["info", "warn", "error", "debug"].includes(response.level))
+            this.level = response.level;
+        else
+            throw Error('Log level is not recognizing!');
     }
 }
