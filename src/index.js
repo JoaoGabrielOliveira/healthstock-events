@@ -7,9 +7,7 @@ import logger from './logger.js';
 
 dotenv.config()
 const app = express();
-const listOfServices = [
-    "http://localhost:8080","http://localhost:8090", "http://localhost:4200"
-];
+const listOfServices = process.env.SERVICES.split(',');
 
 app.use(express.json());
 app.use(cors( { origin: listOfServices}))
