@@ -18,7 +18,7 @@ export default class EventModel {
         this.message = response.message;
         this.data = response.data;
 
-        if(["info", "warn", "error", "debug"].includes(response.level))
+        if(["info", "warn", "error", "debug"].includes(response.level.toLowerCase()))
             this.level = response.level;
         else
             throw Error('Log level is not recognizing!');
